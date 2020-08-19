@@ -1,0 +1,136 @@
+openapi: '3.0.0'
+info:
+  version: 1.0.0
+  title: test generation
+  description: buganalyse
+servers:
+  - url: https://example.com
+
+paths:
+  /bps/api/v3/subscriptions/{id}:
+    get:
+      summary: get a subscription
+      description: getter to access a specific subscription object
+      operationId: getSubscriptionById
+      tags: ["BillingPartner"]
+      parameters:
+        - in: path
+          name: id
+          description: Unique identifier defines a single subscription.
+          required: true
+          schema:
+            type: string
+      responses:
+        200:
+          $ref: "#/components/responses/Subscription"
+        400:
+          $ref: "#/components/responses/BadRequest"
+        404:
+          $ref: "#/components/responses/NotFound"
+        500:
+          $ref: "#/components/responses/InternalError"
+        501:
+          $ref: "#/components/responses/NotImplemented"
+components:
+  responses:
+    Subscription:
+      description: <b>SUCCESS</b>:request was handlet successful and returns a Subscription.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/SubscriptionResponse"
+    # DEFAULT RESPONSE OBJECTS
+    Success:
+      description: <b>SUCCESS</b>:request was handlet successful
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Response"
+    InternalError:
+      description: <b>INTERNAL</b>:something went wrong, some undefined internal server
+        error occurred.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Response"
+    BadRequest:
+      description: <b>FAILED</b>:request failed to do Bad request.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Response"
+    NotFound:
+      description: <b>NOTFOUND</b>:The specified resource (the requested object) was not found.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Response"
+    NotImplemented:
+      description: <b>NOTIMPLEMENTED</b>:Method is not supported. The service does not handle your operation request.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/Response"
+
+  schemas:
+    # START RESPONSE OBJECTS
+    ResponseMessage:
+      type: string
+      description: Additional information in case of not success
+    Response:
+      type: object
+      description: |
+        The default (each) Response has a message field for any kind of text
+      properties:
+        message:
+          $ref: "#/components/schemas/ResponseMessage"
+        resultObject:
+          type: object
+          description: in case of successful request handling there should be a resultObject with all data needed
+          example: {}
+    SubscriptionResponse:
+      type: object
+      description: >
+        This response contains the information related to single subscriptions of a unique user within the billing partner service.<br>
+      oneOf:
+        - $ref: '#/components/schemas/Response'
+        - type: object
+          properties:
+            resultObject:
+              type: object
+              properties:
+                $ref: '#/components/schemas/Subscription'
+          example:
+            message: "read user subscriptions was done"
+            resultObject:
+              productId: 23456789
+              subscriptionId: "some_sub_id"
+              state: "SUSPENDED"
+              stateDetails: "Blocked by Carrier"
+
+    Subscription:
+      type: object
+      description: a single Subscription
+      required: [productId,subscriptionId,state]
+      properties:
+        productId:
+          type: integer
+          description: >
+            Unique identifier refering to configured products / services behind the subscription.<br>
+            Could be used to get more details by using inventory service.
+          example: 123456
+        subscriptionId:
+          type: string
+          description: Unique identifier refering to a specific single subscription.
+          example: "some_sub_id"
+        state:
+          $ref: '#/components/schemas/SubscriptionState'
+        stateDetails:
+          $ref: '#/components/schemas/StateDetails'
+    SubscriptionState:
+      type: string
+      description: The current state for this subscription.
+      enum: [UNKNOWN,ACTIVE,CLOSED]
+    StateDetails:
+      type: string
+      description: Detailed state information
