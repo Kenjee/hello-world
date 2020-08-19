@@ -113,6 +113,6 @@ public class SubscriptionResponse   {
 ...
 ```
 
-you can test it by clone and `mvn clean install`
-https://github.com/OpenAPITools/openapi-generator/issues/6815
-
+* you can test it by clone and `mvn clean install`
+* https://github.com/OpenAPITools/openapi-generator/issues/6815
+* https://github.com/OpenAPITools/openapi-generator/issues/2058
