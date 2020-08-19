@@ -81,6 +81,8 @@ components:
       type: object
       description: |
         The default (each) Response has a message field for any kind of text
+      discriminator:
+        propertyName: message
       properties:
         message:
           $ref: "#/components/schemas/ResponseMessage"

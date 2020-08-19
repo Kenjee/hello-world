@@ -100,3 +100,13 @@ but 'allOf' should be enough
 * you can test it by clone and `mvn clean install`
 * https://github.com/OpenAPITools/openapi-generator/issues/6815
 * https://github.com/OpenAPITools/openapi-generator/issues/2058
+
+
+# hint: solved by adding 
+
+```
+      discriminator:
+        propertyName: message
+```
+        
+        
