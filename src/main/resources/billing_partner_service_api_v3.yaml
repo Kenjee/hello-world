@@ -92,21 +92,23 @@ components:
       type: object
       description: >
         This response contains the information related to single subscriptions of a unique user within the billing partner service.<br>
-      oneOf:
+      allOf:
         - $ref: '#/components/schemas/Response'
         - type: object
           properties:
             resultObject:
               type: object
               properties:
-                $ref: '#/components/schemas/Subscription'
+                subscription:
+                  $ref: '#/components/schemas/Subscription'
           example:
             message: "read user subscriptions was done"
             resultObject:
-              productId: 23456789
-              subscriptionId: "some_sub_id"
-              state: "SUSPENDED"
-              stateDetails: "Blocked by Carrier"
+              subscription:
+                productId: 23456789
+                subscriptionId: "some_sub_id"
+                state: "SUSPENDED"
+                stateDetails: "Blocked by Carrier"
 
     Subscription:
       type: object

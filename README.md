@@ -2,71 +2,41 @@
 * using https://github.com/openapitools/openapi-generator as codegenerator
   * groupId: org.openapitools
   * artifactId: openapi-generator-maven-plugin
-  * version: 4.3.1 
+  * version: 4.3.1 vs 4.3.0 
 
-# Problem
+# Problem are code generation changes
 
-according to definition within [swagger.yml](src/main/resources/billing_partner_service_api_v3.yaml)
+* i tested my [swagger-definition.yml](src/main/resources/billing_partner_service_api_v3.yaml) against swagger.io
 
 ```
 ...
 schemas:
-    # START RESPONSE OBJECTS
-    ResponseMessage:
-      type: string
-      description: Additional information in case of not success
+...
     Response:
       type: object
-      description: |
-        The default (each) Response has a message field for any kind of text
       properties:
         message:
           $ref: "#/components/schemas/ResponseMessage"
         resultObject:
           type: object
           description: in case of successful request handling there should be a resultObject with all data needed
-          example: {}
     SubscriptionResponse:
       type: object
       description: >
         This response contains the information related to single subscriptions of a unique user within the billing partner service.<br>
       allOf:
         - $ref: '#/components/schemas/Response'
-        - type: object
-          properties:
-            resultObject:
-              type: object
-              properties:
-                $ref: '#/components/schemas/Subscription'
-          example:
-            message: "read user subscriptions was done"
-            resultObject:
-              productId: 23456789
-              subscriptionId: "some_sub_id"
-              state: "SUSPENDED"
-              stateDetails: "Blocked by Carrier"
 ...
 ```
+and while generating java code i got `public class SubscriptionResponse extends Response {` with example using https://swagger.io/
 
-While generating java code i should get something like
-`public class SubscriptionResponse extends Response {`
-
-example using https://swagger.io/
-```
+```java
 ...
 package io.swagger.client.model;
-
-import java.util.Objects;
-import java.util.Arrays;
-import com.google.gson.TypeAdapter;
-import com.google.gson.annotations.JsonAdapter;
-import com.google.gson.annotations.SerializedName;
-import com.google.gson.stream.JsonReader;
-import com.google.gson.stream.JsonWriter;
+...
 import io.swagger.client.model.Response;
 import io.swagger.client.model.SubscriptionResponseResultObject;
-import io.swagger.v3.oas.annotations.media.Schema;
-import java.io.IOException;
+...
 /**
  * This response contains the information related to single subscriptions of a unique user within the billing partner service.&lt;br&gt; 
  */
@@ -75,43 +45,57 @@ import java.io.IOException;
 public class SubscriptionResponse extends Response {
   @SerializedName("resultObject")
   private SubscriptionResponseResultObject subscriptionResponseResultObject = null;
-
-  public SubscriptionResponse subscriptionResponseResultObject(SubscriptionResponseResultObject subscriptionResponseResultObject) {
-    this.subscriptionResponseResultObject = subscriptionResponseResultObject;
-    return this;
-  }
 ...
 ```
-example openapi-generator 
-```
+
+while using openapi-generator 4.3.0 i got more less the same
+```java
 package com.generate.api.api.model;
-
-import java.util.Objects;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.annotation.JsonCreator;
+...
 import com.generate.api.api.model.Response;
-import com.generate.api.api.model.SubscriptionResponseOneOf;
-import com.generate.api.api.model.SubscriptionResponseOneOfResultObject;
-import io.swagger.annotations.ApiModel;
-import io.swagger.annotations.ApiModelProperty;
-import org.openapitools.jackson.nullable.JsonNullable;
-import javax.validation.Valid;
-import javax.validation.constraints.*;
-
+import com.generate.api.api.model.SubscriptionResponseAllOf;
+import com.generate.api.api.model.SubscriptionResponseAllOfResultObject;
+...
 /**
  * This response contains the information related to single subscriptions of a unique user within the billing partner service.&lt;br&gt; 
  */
 @ApiModel(description = "This response contains the information related to single subscriptions of a unique user within the billing partner service.<br> ")
-@javax.annotation.Generated(value = "org.openapitools.codegen.languages.SpringCodegen", date = "2020-08-19T16:49:13.433626+02:00[Europe/Berlin]")
-
-public class SubscriptionResponse   {
-  @JsonProperty("message")
-  private String message;
-
+@javax.annotation.Generated(value = "org.openapitools.codegen.languages.SpringCodegen", date = "2020-08-19T18:05:39.954+02:00[Europe/Berlin]")
+public class SubscriptionResponse extends Response  {
   @JsonProperty("resultObject")
-  private SubscriptionResponseOneOfResultObject resultObject;
+  private SubscriptionResponseAllOfResultObject resultObject;
 ...
 ```
+
+but with 4.3.1 it changes to 
+```java
+package com.generate.api.client.model;
+...
+import com.generate.api.client.model.Response;
+import com.generate.api.client.model.SubscriptionResponseAllOf;
+import com.generate.api.client.model.SubscriptionResponseAllOfResultObject;
+...
+/**
+ * This response contains the information related to single subscriptions of a unique user within the billing partner service.&lt;br&gt; 
+ */
+@ApiModel(description = "This response contains the information related to single subscriptions of a unique user within the billing partner service.<br> ")
+@JsonPropertyOrder({
+  SubscriptionResponse.JSON_PROPERTY_MESSAGE,
+  SubscriptionResponse.JSON_PROPERTY_RESULT_OBJECT
+})
+@javax.annotation.Generated(value = "org.openapitools.codegen.languages.JavaClientCodegen", date = "2020-08-19T18:17:34.758665+02:00[Europe/Berlin]")
+public class SubscriptionResponse {
+  public static final String JSON_PROPERTY_MESSAGE = "message";
+  private String message;
+
+  public static final String JSON_PROPERTY_RESULT_OBJECT = "resultObject";
+  private SubscriptionResponseAllOfResultObject resultObject;
+...
+```
+
+as you can see with 4.3.1 SubscriptionResponse does not extend anymore from Response!
+and yes there are hints for using "discriminator" according to https://swagger.io/docs/specification/data-models/inheritance-and-polymorphism/
+but 'allOf' should be enough
 
 * you can test it by clone and `mvn clean install`
 * https://github.com/OpenAPITools/openapi-generator/issues/6815
